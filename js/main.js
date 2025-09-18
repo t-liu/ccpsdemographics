@@ -14,12 +14,12 @@ var mobiledefaultwidth = 780,
 var c = ["#98abc5", "#8a89a6", "#a05d56", "#ff8c00"]
 	
 // set the color scale
-var color = d3.scale.ordinal()
+var color = d3.scaleOrdinal()
     .range(c);
 
 // open d3.js bracket
 // bind the data file, assign raw_data as the data array, and run the two draw functions
-d3.csv("data/ccps_data.csv", function (error, csv_file){
+d3.csv("data/ccps_data.csv").then(function(csv_file){
 
 	csv_file.forEach(function(d) {
 		d.white = +d.white
@@ -33,6 +33,8 @@ d3.csv("data/ccps_data.csv", function (error, csv_file){
 	drawSummaryChart();
 	drawDetailMap();
 
+}).catch(function(error) {
+	console.error("Error loading data:", error);
 });
 
 function drawSummaryChart() {
@@ -49,21 +51,20 @@ function drawSummaryChart() {
 	}
 
 	// set the ranges
-	var x = d3.scale.ordinal()
-	    .rangeRoundBands([0, (width - (margin.right))], .2);
+	var x = d3.scaleBand()
+	    .rangeRound([0, (width - (margin.right))])
+	    .padding(0.2);
 						
-	var y = d3.scale.linear()
+	var y = d3.scaleLinear()
 		.rangeRound([height, 0]);
 		
 	// define the axes	
-	var xAxis = d3.svg.axis()
-		.scale(x)
-		.orient("bottom");
-		//.tickFormat(d3.time.format("%H"));
+	var xAxis = d3.axisBottom()
+		.scale(x);
+		//.tickFormat(d3.timeFormat("%H"));
 
-	var yAxis = d3.svg.axis()
-		.scale(y)
-		.orient("left");
+	var yAxis = d3.axisLeft()
+		.scale(y);
 	
 	// remove old svg if any -- otherwise resizing adds a second one
  	d3.select('svg').remove();
@@ -79,24 +80,22 @@ function drawSummaryChart() {
 				"translate(" + margin.left + "," + margin.top + ")");
 
 	// roll the raw data up by year and return the summarized value by race as its own object property
-	var data = d3.nest()
-		.key(function(d) {return d.short_year;})
-		.sortKeys(d3.ascending)
-		.rollup(function(d){
+	var grouped = d3.group(raw_data, function(d) {return d.short_year;});
+	var data = Array.from(grouped.entries())
+		.sort(function(a, b) {return d3.ascending(a[0], b[0]);})
+		.map(function(d) {
+			var yearData = d[1];
 			return {
-				white: d3.sum(d, function(g) {return g.white;}),
-				black: d3.sum(d, function(g) {return g.black;}),
-				other: d3.sum(d, function(g) {return g.other;}),
-				hispanic: d3.sum(d, function(g) {return g.hispanic;})
+				year: d[0],
+				white: d3.sum(yearData, function(g) {return g.white;}),
+				black: d3.sum(yearData, function(g) {return g.black;}),
+				other: d3.sum(yearData, function(g) {return g.other;}),
+				hispanic: d3.sum(yearData, function(g) {return g.hispanic;})
 			};
-		})
-		.entries(raw_data)
-		.map(function (d) {
-			return {year: d.key, white: d.values.white, black: d.values.black, other: d.values.other, hispanic: d.values.hispanic};
 		});
 
 	// assign color to each of the race by grabbing the first object in the data set
-	color.domain(d3.keys(data[0]).filter(function(key) { return key !== "year"; }));
+	color.domain(Object.keys(data[0]).filter(function(key) { return key !== "year"; }));
 
 	// by year, get the sum and map each race to a block of color
 	data.forEach(function(d) {

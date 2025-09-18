@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html class="no-js">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<title>Interactive graphic: the changing demographics of Charles County public schools</title>
+<meta name="author" content="Thomas Liu">
+<meta name="keywords" content="Charles, County, Maryland, Schools, Demographics">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<link rel="shortcut icon" href="./images/favicon.ico">
+
+<!-- IMPORT STYLES (Bootstrap, Google Fonts, Leaflet) -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+<link rel="stylesheet" type="text/css" href="./css/style3.css" media="screen" title="no title" charset="utf-8">
+<!--[if IE8]>
+	<script src="http://htmlshiv.googlecode.com/svn/trunk/html5.js"></script>
+	<![endif]-->
+<link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Open+Sans+Condensed:700">
+<link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Roboto+Slab:300,400,700">
+<link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Raleway:300,500,900">
+
+<!-- IMPORT SCRIPTS (jQuery, d3, tipsy, Leaflet, jLinq) -->
+<script type = "text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+<script type = "text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>	
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="https://unpkg.com/d3@7.8.5/dist/d3.min.js" integrity="sha512-Mn1S/lHXwp6S5Lx3ETvXQeNwNlTzNjJwK9CQdEMwHyBTtERSUE41YNUKXpWgPLN2XdtcNN0xdVE1XQyM9aTQmA==" crossorigin="anonymous"></script>
+<script type = "text/javascript" src="./js/jquery.tipsy.js"></script>\
+<script type = "text/javascript" src="./js/jLinq-3.0.1.js"></script>
+</head>
+
+
+<body>
+<!-------------------------- begin top navigation box ------------------------>
+<header>
+	<div class="navbar">
+		<div class="navbar-header">
+			<p class="navbar-text">A T-Liu Production</p>
+		</div>	
+		<div class="navbar-right">
+			<p class="navbar-text">
+			<a id="about-button" class="about-link" href="">ABOUT</a> 
+			</p>
+		</div>	
+	</div>
+</header>
+<!--------------------------- end top navigation box ------------------------->
+
+<!-- content for the about box -->
+<div class="about-box">
+	<div class="about-close">x</div>
+	<div class="about-content black">
+		You can contribute to this single page website by mentioning it on social media using hashtag <u>#ccpsdemographics</u> or improve it on <a href="https://github.com/t-liu" target="_blank">GitHub</a> if you are a developer. 
+		<br><br>
+		Special thanks to Mike Bostock (<a href="https://twitter.com/mbostock" target="_blank">@mbostock</a>) for <a href="http://d3js.org/" target="_blank">d3.js</a>, Christophe Viau (<a href="https://twitter.com/d3visualization" target="_blank">@d3visualization</a>) for the <a href="http://christopheviau.com/d3list/gallery.html" target="_blank">d3 gallery</a>.
+	</div>
+</div>	
+
+
+<div class="container-fluid">
+	<div class="content">
+		<div class="row">
+			<!--  begin js for the about us box -->
+			<script>
+			d3.select('.about-link').on('click', function(d, i)
+			{					
+				d3.event.preventDefault();
+				d3.select('.about-box').style({display: 'block'});
+			})
+			d3.select('.about-close').on('click', function(d, i){ d3.select('.about-box').style({display: 'none'}); });
+			</script>
+			<!--  end js for the about us box -->	
+
+			<div class="col-xs-2 col-sm-1 col-mid-1 col-lg-2"></div> <!-- left column (empty for padding purposes) -->
+			<div class="col-xs-14 col-sm-10 col-mid-10 col-lg-8"> <!-- opens the center column -->
+				<!-- begin introduction -->
+				<div id="briefsummary">
+					<h3 class="upper ral heavier black">The Changing Demographics of Charles County Public Schools</h3>
+					<p class="rob">In light of an August 2014 <a href="http://www.cnn.com/2014/08/18/opinion/navarrette-majority-minority-students-public-schools/" target="_blank" title="Navarrette: Don't be afraid of America's changing demographics">CNN article</a> by <a href="https://twitter.com/RubenNavarrette" target="_blank">Ruben Navarrette</a> that speaks about America's changing demographics in public schools, the below is a study on the same topic within this Southern Maryland county.  The data visualization and short blurbs below will provide clarity on the breakdown at a county level and by each school.</p>
+				</div>
+				<br>
+				<div id="ccps-breakdown">
+					<h4 class="upper fat ral black">Demographics at the county level</h4>
+					<p class="small gray rob">The student body in Charles County public schools has seen an increase in minorities from the 2005-2006 school year to 2014-2015 school year and overall student enrollment has slightly decreased within that ten year span. The African-American and Hispanic population has seen a 15% and 110% rise, respectively, in that period.  The white population, in that same time frame, has decreased 36% and had gradual decreases year over year.</p>
+					<p class="small black rob" style="text-align:center"> Hover over the chart to explore the overall demographics breakdown.</p>
+					<!-- d3 graph entered here -->
+					<div id="g-stacked-bar-chart"></div>
+				</div>
+				<br>
+				<div id="school-breakdown">
+					<h4 class="upper fat ral black">Demographics by each schools</h4>
+					<p class="small gray rob">Due to five new schools that were added after the 2005-2006 school year (North Point High, William A. Diggs Elementary, Theodore G. Davis, Mary B. Neal Elementary, and St. Charles High), student body count for several schools within their proximity has dropped in recent years.  Of the 36 schools in Charles County, 25 of them entered the 2014-2015 school year with non-Hispanic white students as a minority group.  Of those 25 schools, two of them had an African-American student population less than 50%. 12 schools had at least eight percent of their student body represented with Hispanic background entering that same school year.</p>
+					<p class="small black rob" style="text-align:center"> Use this interactive map to explore the demographics of each school.</p>
+					<div>
+						<!-- leaflet map goes in here -->
+						<div id="map-container">
+							<div id="map"></div>
+						</div>
+	
+						<!-- school list goes in here-->
+						<div id="school-list-container">
+							<div id="school-list">
+								<ul></ul>
+							</div>
+						</div>
+					</div>
+				</div>
+				<br>
+				<div id="school-breakdown-notation">
+					<p class="gray small rob"><span class="upper fat ral">Note: </span>This analysis includes schools and programs listed under the <a href = "http://www.ccboe.com/" target="_blank">Charles County Board of Education</a>. "Other" in the analysis includes the following: American Indian/Alaska Natives, Asian or Asian/Pacific Islanders, Hawaiian Native/Pacific Islanders, and Multi-racial students (data prior to 2010-2011 were not applicable to a few of the race/ethnicity listed above). <span class="upper fat ral"> Sources: </span><a href = "http://nces.ed.gov/" target="_blank">National Center for Education Statistics</a> and <a href = "http://www.ccboe.com/aboutus/fastfacts.php" target = "_blank">Charles County Public School System.</a>
+					</p>
+				</div>
+				<div id="map-hover-box" class="small ral"></div> <!-- empty div for the map popup box -->
+			</div>	<!-- closes the center column-->
+
+			<div class="col-xs-2 col-sm-1 col-mid-1 col-lg-2"></div> <!-- right column (empty for padding purposes) -->
+
+			<!-- main javascript that does everything -->
+			<script src="./js/main.js"></script>
+
+		</div> <!-- cloes the row -->
+	</div> <!-- closes the content -->
+</div> <!-- closes the container -->
+
+<!------------------------------ begin footer ------------------------------>
+<footer>
+	<div class="footer">
+		<div class="navbar">
+			<div class="navbar-footer">
+				<p class="navbar-text">Copyright &copy; 2015 Thomas Liu </p>
+			</div>
+			<div class="navbar-collapse collapse social-bookmarks">
+				<ul class="nav navbar-nav navbar-right">
+					<li class="mailto">	
+						<a href="mailto:thomas.s.liu@gmail.com" target="_blank" title="Personal E-mail"> </a>
+					</li>
+					<li class="twitter">
+						<a href="https://twitter.com/tliu301" target="_blank" title="Personal Twitter"> </a> 
+					</li>
+					<li class="linkedin">
+						<a href="http://www.linkedin.com/in/thomas-liu-tech" target="_blank" title="Personal LinkedIn"> </a>
+					</li>
+					<li class="github">
+						<a href="https://github.com/t-liu" target="_blank" title="Personal Github"> </a>
+					</li>					
+				</ul>
+			</div>
+		</div>
+	</div>
+</footer>
+<!------------------------------- end footer ------------------------------->
+
+</body>
+</html>
