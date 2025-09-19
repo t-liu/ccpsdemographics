@@ -303,10 +303,24 @@ function drawDetailMap() {
 				});
 			}
 		}
+		// Debug: Check your data structure
+		console.log("Array length:", array.length);
+		console.log("First few items:", array.slice(0, 3));
+		console.log("Items with undefined short_year:", array.filter(function(d) { return !d.short_year; }));
 
+		// Check what short_year values exist in your data
+		var availableYears = _.chain(array)
+		.map('short_year')
+		.uniq()
+		.sort()
+		.value();
+		console.log("Available years:", availableYears);
 		
+		// Safe version that handles undefined/null values
 		var after = _.chain(array)
-			.filter(function(d) { return d.short_year === "14-15"; })
+			.filter(function(d) { 
+				return d && d.short_year && d.short_year === "14-15"; 
+			})
 			.map(function(d) {
 				return {
 					school_id: d.school_id,
@@ -320,13 +334,13 @@ function drawDetailMap() {
 			})
 			.value();
 
-			// Join operation
+			// Join operation (same as before)
 			var BeforeAfterDataSet = _.map(schools, function(school) {
-			var matchingAfter = _.find(after, { school_id: school.school_id });
-			return _.assign({}, school, {
-				after: matchingAfter || null
+				var matchingAfter = _.find(after, { school_id: school.school_id });
+				return _.assign({}, school, {
+					after: matchingAfter ? [matchingAfter] : [] // Always return an array, empty if no match
+				});
 			});
-		});
 
 		return BeforeAfterDataSet;
  	} 
@@ -478,61 +492,100 @@ function drawDetailMap() {
 		$('.school-listing .inner').remove()
 		$('.school-listing').removeClass('selected-school');
 		$(this).addClass('selected-school');
-
+	
 		i = $(this).attr('id')
 		zoomCoordinates = [school_data[i].info.lat, school_data[i].info.lon]
 		zoomDot.setLatLng(zoomCoordinates);
 		$map.setView(zoomCoordinates, 12)
 	
+		// Check if we have complete data for this school
+		var hasBefore = school_data[i].before && school_data[i].before[0];
+		var hasAfter = school_data[i].after && school_data[i].after[0];
+	
+		var tableContent = '';
+		
+		if (hasBefore && hasAfter) {
+			// Complete data - show full comparison
+			tableContent = 
+				'<table>'
+					+ '<tr class = "heavier">'
+						+ '<td> Year </td> <td> White </td> <td> Black </td> <td> Other </td> <td> Hispanic </td> <td> Total </td>'
+					+ '</tr>'
+					+ '<tr>'
+						+ '<td>' + school_data[i].before[0].short_year + ' (#) </td>' 				
+						+ '<td class = "white"> ' + school_data[i].before[0].white + '</td>' 
+						+ '<td class = "black"> ' + school_data[i].before[0].black + '</td>' 
+						+ '<td class = "other"> ' + school_data[i].before[0].other + '</td>'
+						+ '<td class = "hispanic"> ' + school_data[i].before[0].hispanic + '</td>' 
+						+ '<td> ' + school_data[i].before[0].total + '</td>'
+					+ '</tr>'
+					+ '<tr>'
+						+ '<td>' + school_data[i].before[0].short_year + ' (%) </td>' 				
+						+ '<td class = "white"> ' + ((school_data[i].before[0].white / school_data[i].before[0].total) * 100).toFixed(2) + '% </td>' 
+						+ '<td class = "black"> ' + ((school_data[i].before[0].black / school_data[i].before[0].total) * 100).toFixed(2) + '% </td>' 
+						+ '<td class = "other"> ' + ((school_data[i].before[0].other / school_data[i].before[0].total) * 100).toFixed(2) + '% </td>'
+						+ '<td class = "hispanic"> ' + ((school_data[i].before[0].hispanic / school_data[i].before[0].total) * 100).toFixed(2) + '% </td>' 
+						+ '<td> &nbsp; </td>'
+					+ '</tr>'
+					+ '<tr><td colspan=6>&nbsp;</td></tr>'
+					+ '<tr>'
+						+ '<td>' + school_data[i].after[0].short_year + ' (#) </td>' 				
+						+ '<td class = "white"> ' + school_data[i].after[0].white + '</td>' 
+						+ '<td class = "black"> ' + school_data[i].after[0].black + '</td>' 
+						+ '<td class = "other"> ' + school_data[i].after[0].other + '</td>'
+						+ '<td class = "hispanic"> ' + school_data[i].after[0].hispanic + '</td>' 
+						+ '<td> ' + school_data[i].after[0].total + '</td>'
+					+ '</tr>' 
+					+ '<tr>'
+						+ '<td>' + school_data[i].after[0].short_year + ' (%) </td>' 				
+						+ '<td class = "white"> ' + ((school_data[i].after[0].white / school_data[i].after[0].total) * 100).toFixed(2) + '% </td>' 
+						+ '<td class = "black"> ' + ((school_data[i].after[0].black / school_data[i].after[0].total) * 100).toFixed(2) + '% </td>' 
+						+ '<td class = "other"> ' + ((school_data[i].after[0].other / school_data[i].after[0].total) * 100).toFixed(2) + '% </td>'
+						+ '<td class = "hispanic"> ' + ((school_data[i].after[0].hispanic / school_data[i].after[0].total) * 100).toFixed(2) + '% </td>' 
+						+ '<td> &nbsp; </td>'
+					+ '</tr>'					
+				+ '</table>';
+		} else if (hasBefore && !hasAfter) {
+			// Only "before" data available
+			tableContent = 
+				'<table>'
+					+ '<tr class = "heavier">'
+						+ '<td> Year </td> <td> White </td> <td> Black </td> <td> Other </td> <td> Hispanic </td> <td> Total </td>'
+					+ '</tr>'
+					+ '<tr>'
+						+ '<td>' + school_data[i].before[0].short_year + ' (#) </td>' 				
+						+ '<td class = "white"> ' + school_data[i].before[0].white + '</td>' 
+						+ '<td class = "black"> ' + school_data[i].before[0].black + '</td>' 
+						+ '<td class = "other"> ' + school_data[i].before[0].other + '</td>'
+						+ '<td class = "hispanic"> ' + school_data[i].before[0].hispanic + '</td>' 
+						+ '<td> ' + school_data[i].before[0].total + '</td>'
+					+ '</tr>'
+					+ '<tr>'
+						+ '<td>' + school_data[i].before[0].short_year + ' (%) </td>' 				
+						+ '<td class = "white"> ' + ((school_data[i].before[0].white / school_data[i].before[0].total) * 100).toFixed(2) + '% </td>' 
+						+ '<td class = "black"> ' + ((school_data[i].before[0].black / school_data[i].before[0].total) * 100).toFixed(2) + '% </td>' 
+						+ '<td class = "other"> ' + ((school_data[i].before[0].other / school_data[i].before[0].total) * 100).toFixed(2) + '% </td>'
+						+ '<td class = "hispanic"> ' + ((school_data[i].before[0].hispanic / school_data[i].before[0].total) * 100).toFixed(2) + '% </td>' 
+						+ '<td> &nbsp; </td>'
+					+ '</tr>'
+					+ '<tr><td colspan=6><em>No comparison data available for 14-15</em></td></tr>'
+				+ '</table>';
+		} else {
+			// No data available
+			tableContent = '<p><em>No demographic data available for this school.</em></p>';
+		}
+	
 		$(this).append (
 			'<div class = "inner upper ral normal black">' 
 				+ school_data[i].info.address + ', ' + school_data[i].info.city + ', ' + school_data[i].info.state + '&nbsp;' + school_data[i].info.zip + '<br/>'
-					+ '<br/>'
-					+ '<table>'
-						+ '<tr class = "heavier">'
-							+ '<td> Year </td> <td> White </td> <td> Black </td> <td> Other </td> <td> Hispanic </td> <td> Total </td>'
-						+ '</tr>'
-						+ '<tr>'
-							+ '<td>' + school_data[i].before[0].short_year + ' (#) </td>' 				
-							+ '<td class = "white"> ' + school_data[i].before[0].white + '</td>' 
-							+ '<td class = "black"> ' + school_data[i].before[0].black + '</td>' 
-							+ '<td class = "other"> ' + school_data[i].before[0].other + '</td>'
-							+ '<td class = "hispanic"> ' + school_data[i].before[0].hispanic + '</td>' 
-							+ '<td> ' + school_data[i].before[0].total + '</td>'
-						+ '</tr>'
-						+ '<tr>'
-							+ '<td>' + school_data[i].before[0].short_year + ' (%) </td>' 				
-							+ '<td class = "white"> ' + ((school_data[i].before[0].white / school_data[i].before[0].total) * 100).toFixed(2) + '% </td>' 
-							+ '<td class = "black"> ' + ((school_data[i].before[0].black / school_data[i].before[0].total) * 100).toFixed(2) + '% </td>' 
-							+ '<td class = "other"> ' + ((school_data[i].before[0].other / school_data[i].before[0].total) * 100).toFixed(2) + '% </td>'
-							+ '<td class = "hispanic"> ' + ((school_data[i].before[0].hispanic / school_data[i].before[0].total) * 100).toFixed(2) + '% </td>' 
-							+ '<td> &nbsp; </td>'
-						+ '</tr>'
-						+ '<tr><td colspan=6>&nbsp;</td></tr>'
-						+ '<tr>'
-							+ '<td>' + school_data[i].after[0].short_year + ' (#) </td>' 				
-							+ '<td class = "white"> ' + school_data[i].after[0].white + '</td>' 
-							+ '<td class = "black"> ' + school_data[i].after[0].black + '</td>' 
-							+ '<td class = "other"> ' + school_data[i].after[0].other + '</td>'
-							+ '<td class = "hispanic"> ' + school_data[i].after[0].hispanic + '</td>' 
-							+ '<td> ' + school_data[i].after[0].total + '</td>'
-						+ '</tr>' 
-						+ '<tr>'
-							+ '<td>' + school_data[i].after[0].short_year + ' (%) </td>' 				
-							+ '<td class = "white"> ' + ((school_data[i].after[0].white / school_data[i].after[0].total) * 100).toFixed(2) + '% </td>' 
-							+ '<td class = "black"> ' + ((school_data[i].after[0].black / school_data[i].after[0].total) * 100).toFixed(2) + '% </td>' 
-							+ '<td class = "other"> ' + ((school_data[i].after[0].other / school_data[i].after[0].total) * 100).toFixed(2) + '% </td>'
-							+ '<td class = "hispanic"> ' + ((school_data[i].after[0].hispanic / school_data[i].after[0].total) * 100).toFixed(2) + '% </td>' 
-							+ '<td> &nbsp; </td>'
-						+ '</tr>'					
-					+ '</table>'			
+				+ '<br/>'
+				+ tableContent		
 			+ '</div>'
 		)
-
+	
 		$('.selected-school')[0].scrollIntoView()
 		$('#school-list').scrollTop($('#school-list').scrollTop() - 33)
 		$(document).scrollTop($(document).scrollTop() - 120)
-
 	})
 } // closes the draw function
 
