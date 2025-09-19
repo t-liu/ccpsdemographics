@@ -120,7 +120,7 @@ function drawSummaryChart() {
 	group.selectAll("rect")
 		.data(function(d) { return d.group; })
 	.enter().append("rect")
-		.attr("width", x.rangeBand())
+		.attr("width", x.bandwidth())
 		.attr("y", function(d) { return y(d.y1); })
 		.attr("height", function(d) { return y(d.y0) - y(d.y1); })
 		.attr("class", "background")
@@ -304,30 +304,31 @@ function drawDetailMap() {
 			}
 		}
 
-		var after = jLinq.from(array)
-			.equals("short_year", "14-15")
-			.select(
-				function(d){
-					return {
-						school_id: d.school_id,
-						short_year: d.short_year,
-						white: d.white,
-						black: d.black,
-						other: d.other,
-						hispanic: d.hispanic,
-						total: d.total
-					}
-				});
+		
+		var after = _.chain(array)
+			.filter(function(d) { return d.short_year === "14-15"; })
+			.map(function(d) {
+				return {
+					school_id: d.school_id,
+					short_year: d.short_year,
+					white: d.white,
+					black: d.black,
+					other: d.other,
+					hispanic: d.hispanic,
+					total: d.total
+				};
+			})
+			.value();
 
-  		var BeforeAfterDataSet = jlinq.from(schools)
-			.join(
-				after,
-				"after",
-				"school_id",
-				"school_id")
-			.select();
+			// Join operation
+			var BeforeAfterDataSet = _.map(schools, function(school) {
+			var matchingAfter = _.find(after, { school_id: school.school_id });
+			return _.assign({}, school, {
+				after: matchingAfter || null
+			});
+		});
 
-			return BeforeAfterDataSet;
+		return BeforeAfterDataSet;
  	} 
 
  	// run the reformat function on the raw data to transform data for the leaflet part
