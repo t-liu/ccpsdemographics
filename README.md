@@ -10,6 +10,8 @@ Tools that were used to help along the way:
 - Leaflet (for the map)
 
 Improvements that can be made:
-- Replace an old JavaScript utility that joins arrays by property/value (refuse to mention by name), maybe use Lo-Dash or Underscore.
 - Make the d3.js chart interactive, perhaps buttons to filter on grade level.
 - Improve the UI/UX (especially for mobile)
+
+Since this is a single page website, you can go to localhost:8000 after you run the following locally:
+`python3 -m http.server 8000`
