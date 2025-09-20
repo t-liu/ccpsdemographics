@@ -193,10 +193,17 @@ function drawSummaryChart() {
 			.text("Student Population (#)");
 
 		// define tooltips to work with the stacked bar chart (above)	
-		$('svg rect').tipsy({
-			opacity: 1, 
-			gravity: $.fn.tipsy.autoBoundsCustom(175, 'w'), 
-			html: true
+		tippy('svg rect', {
+			content(reference) {
+				return reference.getAttribute('title');
+			},
+			allowHTML: true,
+			placement: 'auto', 
+			theme: 'light-border',
+			arrow: true,
+			maxWidth: 250, // Your old autoBoundsCustom width
+			hideOnClick: false,
+			trigger: 'mouseenter focus'
 		});
 	}
 	else {
@@ -243,10 +250,17 @@ function drawSummaryChart() {
 
 
 		// define tooltips to work with the stacked bar chart (above)	
-		$('svg rect').tipsy({
-			opacity: 1, 
-			gravity: $.fn.tipsy.autoBoundsCustom(300, 'w'), 
-			html: true
+		tippy('svg rect', {
+			content(reference) {
+				return reference.getAttribute('title');
+			},
+			allowHTML: true,
+			placement: 'auto',
+			theme: 'light-border',
+			arrow: true,
+			maxWidth: 250, // Your old autoBoundsCustom width
+			hideOnClick: false,
+			trigger: 'mouseenter focus'
 		});
 	}
 

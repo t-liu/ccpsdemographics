@@ -330,6 +330,16 @@ html, body {
 	background: none; 
 }
 
+.tippy-box[data-theme~='custom'] {
+    background-color: #333;
+    color: white;
+    font-size: 12px;
+}
+
+.tippy-box[data-theme~='custom'][data-placement^='left'] > .tippy-arrow::before {
+    border-left-color: #333;
+}
+
 /* For the chart (jumbotron) */
 
 .jumbotron {
